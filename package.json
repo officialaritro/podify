@@ -1,0 +1,29 @@
+{
+  "name": "podify",
+  "version": "1.0.0",
+  "description": "Personal text-to-speech infrastructure playground with smart caching",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["tts", "text-to-speech", "caching", "nodejs"],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.5.4",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}
