@@ -3,6 +3,7 @@ import cors from 'cors';
 import { config } from './config.js';
 import { chunker } from './chunker.js';
 import { chunkCache, fullTextCache } from './cache/index.js';
+import { semaphore } from './semaphore.js';
 import {
   HealthResponse,
   SynthesizeRequest,
@@ -79,6 +80,7 @@ app.get('/health', (req: Request, res: Response) => {
 
   const chunkCacheStats = chunkCache.getStats();
   const fullTextCacheStats = fullTextCache.getStats();
+  const semaphoreStats = semaphore.getStats();
 
   const totalCacheSizeMB = chunkCache.getSizeMB() + fullTextCache.getSizeMB();
   
@@ -95,7 +97,11 @@ app.get('/health', (req: Request, res: Response) => {
       currentSizeMB: totalCacheSizeMB,
       maxSizeMB: config.caching.chunkCacheMaxMB + config.caching.fullTextCacheMaxMB,
     },
-    concurrency: appStats.concurrency,
+    concurrency: {
+      used: semaphoreStats.used,
+      max: semaphoreStats.max,
+      queueLength: semaphoreStats.queueLength,
+    },
     memory,
   };
 
@@ -138,8 +144,13 @@ app.post('/synthesize', (req: Request, res: Response) => {
 });
 
 app.get('/queue', (req: Request, res: Response) => {
+  const stats = semaphore.getStats();
   res.json({
-    concurrency: appStats.concurrency,
+    concurrency: {
+      used: stats.used,
+      max: stats.max,
+      queueLength: stats.queueLength,
+    },
   });
 });
 
