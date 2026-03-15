@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { config } from './config.js';
 import { chunker } from './chunker.js';
+import { chunkCache, fullTextCache } from './cache/index.js';
 import {
   HealthResponse,
   SynthesizeRequest,
@@ -75,21 +76,24 @@ function calculateHitRate(hits: number, misses: number): string {
 app.get('/health', (req: Request, res: Response) => {
   const memory = getMemoryUsage();
   const uptime = Date.now() - appStats.startTime;
+
+  const chunkCacheStats = chunkCache.getStats();
+  const fullTextCacheStats = fullTextCache.getStats();
+
+  const totalCacheSizeMB = chunkCache.getSizeMB() + fullTextCache.getSizeMB();
   
   const health: HealthResponse = {
     status: 'healthy',
     uptime: formatUptime(uptime),
     cache: {
-      ...appStats.cacheStats,
-      chunkHitRate: calculateHitRate(
-        appStats.cacheStats.chunkHits,
-        appStats.cacheStats.chunkMisses
-      ),
-      fullTextHitRate: calculateHitRate(
-        appStats.cacheStats.fullTextHits,
-        appStats.cacheStats.fullTextMisses
-      ),
-      currentSizeMB: appStats.cacheStats.currentSizeMB,
+      chunkHits: chunkCacheStats.hits,
+      chunkMisses: chunkCacheStats.misses,
+      chunkHitRate: chunkCacheStats.hitRate,
+      fullTextHits: fullTextCacheStats.hits,
+      fullTextMisses: fullTextCacheStats.misses,
+      fullTextHitRate: fullTextCacheStats.hitRate,
+      currentSizeMB: totalCacheSizeMB,
+      maxSizeMB: config.caching.chunkCacheMaxMB + config.caching.fullTextCacheMaxMB,
     },
     concurrency: appStats.concurrency,
     memory,
